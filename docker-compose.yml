@@ -1,0 +1,36 @@
+name: custom-store-dev
+
+services:
+  web:
+    build:
+      context: .
+      target: development
+    restart: unless-stopped
+    environment:
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DJANGO_DB_PATH: /data/db/db.sqlite3
+      DJANGO_MEDIA_ROOT: /data/media
+      DJANGO_SUPERUSER_EMAIL: ${SUPERUSER_EMAIL:-admin@example.com}
+      DJANGO_SUPERUSER_PASSWORD: ${SUPERUSER_PASSWORD:-password}
+    ports:
+      - "127.0.0.1:${DJANGO_PORT:-8000}:8000"
+    volumes:
+      - database:/data/db
+      - media:/data/media
+      - ./app:/app
+
+  tailwind:
+    image: node:24-bookworm-slim
+    restart: unless-stopped
+    working_dir: /app/theme/static_src
+    command: ["sh", "/opt/store/tailwind.sh"]
+    volumes:
+      - ./app:/app
+      - ./docker/dev/tailwind.sh:/opt/store/tailwind.sh:ro
+      - tailwind_node_modules:/app/theme/static_src/node_modules
+
+volumes:
+  database:
+  media:
+  tailwind_node_modules:

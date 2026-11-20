@@ -1,0 +1,85 @@
+name: custom-store-prod
+
+services:
+  web:
+    build:
+      context: .
+      target: production
+    restart: unless-stopped
+    environment:
+      DJANGO_DEBUG: "0"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
+      DJANGO_ALLOWED_HOSTS: ${STORE_DOMAIN:?Set STORE_DOMAIN in .env}
+      DJANGO_HTTPS: "1"
+      DJANGO_DB_PATH: /data/db/db.sqlite3
+      DJANGO_MEDIA_ROOT: /data/media
+      DJANGO_STATIC_ROOT: /data/static
+    volumes:
+      - database:/data/db
+      - media:/data/media
+      - static:/data/static
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import os
+          from http.client import HTTPConnection
+
+          connection = HTTPConnection("127.0.0.1", 8000, timeout=2)
+          connection.request("HEAD", "/", headers={"Host": os.environ["DJANGO_ALLOWED_HOSTS"]})
+          response = connection.getresponse()
+          if response.status != 200:
+              raise SystemExit(f"Django returned HTTP {response.status}")
+          connection.close()
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  nginx:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      STORE_DOMAIN: ${STORE_DOMAIN:?Set STORE_DOMAIN in .env}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx:/etc/nginx/store:ro
+      - ./docker/nginx/configure.sh:/docker-entrypoint.d/40-store.sh:ro
+      - static:/data/static:ro
+      - media:/data/media:ro
+      - acme:/var/www/acme:ro
+      - certificates:/etc/letsencrypt:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/.well-known/acme-challenge/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    depends_on:
+      nginx:
+        condition: service_healthy
+    environment:
+      STORE_DOMAIN: ${STORE_DOMAIN:?Set STORE_DOMAIN in .env}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:?Set LETSENCRYPT_EMAIL in .env}
+    entrypoint: ["/bin/sh", "/opt/certbot.sh"]
+    volumes:
+      - ./docker/certbot/renew.sh:/opt/certbot.sh:ro
+      - acme:/var/www/acme
+      - certificates:/etc/letsencrypt
+
+volumes:
+  database:
+  media:
+  static:
+  acme:
+  certificates:
