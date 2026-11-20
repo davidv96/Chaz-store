@@ -1,0 +1,29 @@
+{% comment %}
+Primary swap target: #quick-customer-result (inside the modal)
+OOB swap: replaces #id_user select in the main form
+{% endcomment %}
+
+{% if error %}
+    <div class="alert alert-error text-sm mt-4 py-2">
+        <span>{{ error }}</span>
+    </div>
+{% else %}
+    <div class="alert alert-success text-sm mt-4 py-2">
+        <span>Customer "{{ new_user.email }}" created and selected.</span>
+    </div>
+    <script>
+        setTimeout(function() {
+            document.getElementById('create-customer-modal').close();
+        }, 800);
+    </script>
+{% endif %}
+
+<!-- OOB: replace the customer select with updated options -->
+<select name="user" id="id_user" class="select select-bordered w-full" required hx-swap-oob="outerHTML">
+    <option value="">— choose —</option>
+    {% for u in users %}
+        <option value="{{ u.pk }}" {% if new_user and u.pk == new_user.pk %}selected{% endif %}>
+            {{ u.email }}{% if u.get_full_name %} ({{ u.get_full_name }}){% endif %}
+        </option>
+    {% endfor %}
+</select>

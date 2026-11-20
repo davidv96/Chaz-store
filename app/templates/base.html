@@ -1,0 +1,28 @@
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en" data-theme="corporate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RCVA Custom{% endblock %}</title>
+    {% tailwind_css %}
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="min-h-screen flex flex-col">
+    {% block navbar %}{% include "includes/_navbar.html" %}{% endblock %}
+    {% include "includes/_messages.html" %}
+
+    {% block main %}
+    <main class="flex-1 container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    {% endblock %}
+
+    {% block footer %}{% include "includes/_footer.html" %}{% endblock %}
+
+    <div id="toast-container" class="toast toast-top toast-end z-50"></div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}RCVA Custom{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto text-center py-16">
+    <span class="badge badge-outline uppercase tracking-widest mb-6">
+        Crafted To Order
+    </span>
+
+    <h1 class="text-4xl sm:text-5xl font-bold leading-tight mb-4">
+        Unique Gifts for Every <span class="text-primary">Occasion.</span>
+    </h1>
+
+    <p class="text-base-content/70 text-lg mb-8">
+        Tell us what you want made. Upload a photo or a link to what you have in mind,
+        and we'll quote it and get to work.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        {% if user.is_authenticated %}
+            <a href="{% url 'orders:request_create' %}" class="btn btn-primary btn-lg">Begin Order &rarr;</a>
+            <a href="{% url 'orders:order_list' %}" class="btn btn-ghost">View My Orders</a>
+        {% else %}
+            <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">Sign Up to Get Started &rarr;</a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-ghost">Log In</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if featured_services %}
+<!-- Featured Catalog -->
+<div class="max-w-6xl mx-auto pb-20">
+    <div class="flex items-end justify-between mb-6">
+        <div>
+            <span class="badge badge-outline uppercase tracking-widest mb-2">Fan Favorites</span>
+
+        </div>
+        <a href="{% url 'catalog:service_list' %}" class="link link-primary text-sm whitespace-nowrap">View all services &rarr;</a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for service in featured_services %}
+        <div class="card bg-base-100 shadow-sm">
+            {% if service.image %}
+            <figure>
+                <img src="{{ service.image.url }}" alt="{{ service.name }}" class="aspect-3/2 w-full object-cover" />
+            </figure>
+            {% else %}
+            <figure class="bg-base-200 aspect-3/2 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </figure>
+            {% endif %}
+            <div class="card-body">
+                <h2 class="card-title text-lg">{{ service.name }}</h2>
+                <div class="flex flex-wrap gap-1">{% for tag in service.tags.all %}<span class="badge badge-outline badge-sm">#{{ tag.name }}</span>{% endfor %}</div>
+                <p class="text-base-content/70 text-sm">{{ service.short_description }}</p>
+                <div class="flex items-center justify-between text-sm mt-1">
+                    {% if service.is_price_variable %}
+                        <span class="text-xl font-bold text-secondary">Custom Quote</span>
+                    {% else %}
+                        <span class="text-xl font-bold text-primary">${{ service.price }}</span>
+                    {% endif %}
+                    <span class="text-base-content/60">Est. {{ service.estimated_days }}-day</span>
+                </div>
+                <div class="card-actions justify-end mt-2">
+                    <a href="{{ service.get_absolute_url }}" class="btn btn-ghost btn-sm">Details</a>
+                    <form method="post" action="{% url 'orders:add_pending_item' service.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm">Add to Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- How It Works -->
+<div class="max-w-md mx-auto pb-20">
+    <h2 class="text-xl font-bold text-center mb-8">How It Works</h2>
+
+    <ul class="steps steps-vertical">
+        <li class="step step-primary">
+            <div class="text-left pb-6">
+                <div class="font-semibold">Create an account</div>
+                <div class="text-sm text-base-content/60">Sign up so you can submit requests and track them over time.</div>
+            </div>
+        </li>
+        <li class="step step-primary">
+            <div class="text-left pb-6">
+                <div class="font-semibold">Request custom work</div>
+                <div class="text-sm text-base-content/60">Describe what you want, upload a photo, or drop a link to a model.</div>
+            </div>
+        </li>
+        <li class="step step-primary">
+            <div class="text-left pb-6">
+                <div class="font-semibold">We quote the price</div>
+                <div class="text-sm text-base-content/60">Our team reviews your request and sends you a price to approve.</div>
+            </div>
+        </li>
+        <li class="step step-primary">
+            <div class="text-left">
+                <div class="font-semibold">We fulfill your order</div>
+                <div class="text-sm text-base-content/60">Once approved, we craft it and get it shipped to you.</div>
+            </div>
+        </li>
+    </ul>
+</div>
+{% endblock %}

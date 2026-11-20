@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Begin Order{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-4">
+    <h1 class="text-2xl font-bold mb-1">Begin Order</h1>
+    <p class="text-base-content/60 mb-6">Tell us what you'd like made. We'll review it and follow up with pricing.</p>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        {% if formset.non_form_errors %}
+            <div class="alert alert-error mb-4">
+                {% for error in formset.non_form_errors %}<span>{{ error }}</span>{% endfor %}
+            </div>
+        {% endif %}
+
+        <div id="item-rows" class="flex flex-col gap-4 mb-3">
+            {% for form in formset %}
+            <div class="item-row card bg-base-100 shadow-md">
+                <div class="card-body gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium text-sm text-base-content/60">Item {{ forloop.counter }}</span>
+                        {% if forloop.counter0 < pending_count %}
+                        <button type="submit" formaction="{% url 'orders:remove_pending_item' forloop.counter0 %}" formnovalidate class="btn btn-ghost btn-xs text-error">Remove</button>
+                        {% else %}
+                        <button type="button" class="btn btn-ghost btn-xs text-error remove-row">Remove</button>
+                        {% endif %}
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-error"><span>{{ form.non_field_errors.0 }}</span></div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_6rem] gap-3">
+                        <div class="form-control w-full">
+                            <label class="label" for="{{ form.item_name.id_for_label }}">
+                                <span class="label-text">What do you want made?</span>
+                            </label>
+                            {{ form.item_name }}
+                            {% if form.initial.base_price %}
+                                <label class="label py-0">
+                                    <span class="label-text-alt text-base-content/50">Starts at ${{ form.initial.base_price }} — final price may increase based on customization</span>
+                                </label>
+                            {% endif %}
+                            {% for error in form.item_name.errors %}
+                                <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                            {% endfor %}
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label" for="{{ form.quantity.id_for_label }}">
+                                <span class="label-text">Qty</span>
+                            </label>
+                            {{ form.quantity }}
+                            {% for error in form.quantity.errors %}
+                                <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label" for="{{ form.description.id_for_label }}">
+                            <span class="label-text">Details</span>
+                        </label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="form-control w-full">
+                            <label class="label" for="{{ form.image.id_for_label }}">
+                                <span class="label-text">Photo</span>
+                            </label>
+                            {{ form.image }}
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label" for="{{ form.reference_url.id_for_label }}">
+                                <span class="label-text">Makerworld / model link</span>
+                            </label>
+                            {{ form.reference_url }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" id="add-row" class="btn btn-ghost btn-sm mb-6">+ Add another item</button>
+
+        <div class="form-control w-full mb-6">
+            <label class="label" for="order-notes">
+                <span class="label-text">Anything else we should know?</span>
+            </label>
+            <textarea id="order-notes" name="notes" rows="2"
+                      class="textarea textarea-bordered w-full"
+                      placeholder="Overall notes for your whole request…"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full">Submit Request</button>
+    </form>
+</div>
+
+<template id="empty-row-template">
+    <div class="item-row card bg-base-100 shadow-md">
+        <div class="card-body gap-3">
+            <div class="flex items-center justify-between">
+                <span class="font-medium text-sm text-base-content/60">New Item</span>
+                <button type="button" class="btn btn-ghost btn-xs text-error remove-row">Remove</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-[1fr_6rem] gap-3">
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text">What do you want made?</span></label>
+                    {{ formset.empty_form.item_name }}
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text">Qty</span></label>
+                    {{ formset.empty_form.quantity }}
+                </div>
+            </div>
+            <div class="form-control w-full">
+                <label class="label"><span class="label-text">Details</span></label>
+                {{ formset.empty_form.description }}
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text">Photo</span></label>
+                    {{ formset.empty_form.image }}
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text">Makerworld / model link</span></label>
+                    {{ formset.empty_form.reference_url }}
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+(function () {
+    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+    const rows = document.getElementById('item-rows');
+    const templateHtml = document.getElementById('empty-row-template').innerHTML;
+
+    document.getElementById('add-row').addEventListener('click', function () {
+        const index = parseInt(totalForms.value, 10);
+        const html = templateHtml.replaceAll('__prefix__', index);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html.trim();
+        rows.appendChild(wrapper.firstElementChild);
+        totalForms.value = index + 1;
+    });
+
+    rows.addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-row')) {
+            e.target.closest('.item-row').remove();
+        }
+    });
+})();
+</script>
+{% endblock %}

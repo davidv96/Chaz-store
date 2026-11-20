@@ -1,0 +1,26 @@
+{% if popular_services %}
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Service</th>
+                <th>Orders</th>
+                <th>Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service in popular_services %}
+            <tr>
+                <td class="text-base-content/60">{{ forloop.counter }}</td>
+                <td class="font-medium">{{ service.service__name }}</td>
+                <td>{{ service.order_count }}</td>
+                <td>${{ service.total_revenue }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-base-content/60 py-4">No service data available yet.</p>
+{% endif %}

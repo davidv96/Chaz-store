@@ -1,0 +1,49 @@
+{% extends "dashboard/_staff_base.html" %}
+
+{% block title %}Tags{% endblock %}
+
+{% block staff_content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Tags</h1>
+        <p class="text-base-content/60 text-sm">Hashtags used to organize services.</p>
+    </div>
+</div>
+
+<div class="card bg-base-100 shadow-md">
+    <div class="card-body p-0">
+        {% if tags %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tag</th>
+                        <th class="text-center">Services</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tag in tags %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'catalog:service_admin_list' %}?tag={{ tag.slug }}" class="badge badge-outline">#{{ tag.name }}</a>
+                        </td>
+                        <td class="text-center">{{ tag.service_count }}</td>
+                        <td class="text-right">
+                            <form method="post" action="{% url 'catalog:tag_delete' tag.pk %}"
+                                  onsubmit="return confirm('Delete tag #{{ tag.name }}? This removes it from all services.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-ghost btn-xs text-error">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="p-8 text-center text-base-content/60">
+                <p>No tags yet. Tags are created inline while editing a service.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

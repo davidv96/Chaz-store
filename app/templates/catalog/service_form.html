@@ -1,0 +1,585 @@
+{% extends "dashboard/_staff_base.html" %}
+
+{% block title %}{% if object %}Edit Service{% else %}New Service{% endif %}{% endblock %}
+{% block staff_title %}{% if object %}Edit Service{% else %}New Service{% endif %}{% endblock %}
+
+{% block staff_content %}
+<div class="max-w-2xl">
+    <div class="flex items-center gap-4 mb-6">
+        <a href="{% url 'catalog:service_admin_list' %}" class="btn btn-ghost btn-sm">← Back</a>
+    </div>
+
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error mb-4">
+                        {% for error in form.non_field_errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Categories multi-tag input -->
+                <div class="form-control w-full mb-3">
+                    <label class="label">
+                        <span class="label-text">Tags</span>
+                    </label>
+
+                    <!-- Hidden inputs for selected category IDs (one per selection) -->
+                    <div id="tag-hidden-inputs"></div>
+
+                    <!-- Clickable tag-input container -->
+                    <div id="tag-box"
+                         class="input input-bordered w-full flex flex-wrap items-center gap-1.5 min-h-10 h-auto py-1.5 cursor-text {% if form.tags.errors %}input-error{% endif %}"
+                         onclick="document.getElementById('tag-text').focus()">
+                        <!-- Selected tags injected here by JS -->
+                        <input type="text" id="tag-text"
+                               class="flex-1 outline-none bg-transparent text-sm min-w-32"
+                               placeholder="Search or type to create tag…"
+                               autocomplete="off"
+                               spellcheck="false">
+                    </div>
+
+                    <!-- Dropdown suggestions -->
+                    <div id="tag-dropdown" class="relative hidden">
+                        <ul id="tag-list-el"
+                            class="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-box shadow-lg max-h-48 overflow-y-auto py-1">
+                        </ul>
+                    </div>
+
+                    {% for error in form.tags.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                    {% endfor %}
+                </div>
+
+                {{ initial_tags|json_script:"initial-tags" }}
+
+                <!-- Name -->
+                <div class="form-control w-full mb-3">
+                    <label class="label" for="{{ form.name.id_for_label }}">
+                        <span class="label-text">Name</span>
+                    </label>
+                    <input type="text" name="{{ form.name.html_name }}" id="{{ form.name.id_for_label }}"
+                           value="{{ form.name.value|default:'' }}"
+                           class="input input-bordered w-full {% if form.name.errors %}input-error{% endif %}"
+                           placeholder="Service name" />
+                    {% for error in form.name.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                    {% endfor %}
+                </div>
+
+                <!-- Slug -->
+                <div class="form-control w-full mb-3">
+                    <label class="label" for="{{ form.slug.id_for_label }}">
+                        <span class="label-text">Slug</span>
+                    </label>
+                    <input type="text" name="{{ form.slug.html_name }}" id="{{ form.slug.id_for_label }}"
+                           value="{{ form.slug.value|default:'' }}"
+                           class="input input-bordered w-full {% if form.slug.errors %}input-error{% endif %}"
+                           placeholder="e.g. my-service-name" />
+                    <label class="label"><span class="label-text-alt text-base-content/60">Used in the URL. Leave blank to auto-generate from name.</span></label>
+                    {% for error in form.slug.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                    {% endfor %}
+                </div>
+
+                <!-- Short Description -->
+                <div class="form-control w-full mb-3">
+                    <label class="label" for="{{ form.short_description.id_for_label }}">
+                        <span class="label-text">Short Description</span>
+                    </label>
+                    <textarea name="{{ form.short_description.html_name }}" id="{{ form.short_description.id_for_label }}"
+                              rows="2"
+                              class="textarea textarea-bordered w-full {% if form.short_description.errors %}textarea-error{% endif %}"
+                              placeholder="Brief summary shown in listings">{{ form.short_description.value|default:'' }}</textarea>
+                    {% for error in form.short_description.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                    {% endfor %}
+                </div>
+
+                <!-- Description -->
+                <div class="form-control w-full mb-3">
+                    <label class="label" for="{{ form.description.id_for_label }}">
+                        <span class="label-text">Full Description</span>
+                    </label>
+                    <textarea name="{{ form.description.html_name }}" id="{{ form.description.id_for_label }}"
+                              rows="5"
+                              class="textarea textarea-bordered w-full {% if form.description.errors %}textarea-error{% endif %}"
+                              placeholder="Detailed description of the service">{{ form.description.value|default:'' }}</textarea>
+                    {% for error in form.description.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                    {% endfor %}
+                </div>
+
+                <!-- Price & Estimated Days -->
+                <div class="grid grid-cols-2 gap-4 mb-3">
+                    <div class="form-control w-full">
+                        <label class="label" for="{{ form.price.id_for_label }}">
+                            <span class="label-text">Price ($)</span>
+                        </label>
+                        <input type="number" name="{{ form.price.html_name }}" id="{{ form.price.id_for_label }}"
+                               value="{{ form.price.value|default:'' }}"
+                               step="0.01" min="0"
+                               class="input input-bordered w-full {% if form.price.errors %}input-error{% endif %}"
+                               placeholder="0.00" />
+                        {% for error in form.price.errors %}
+                            <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label" for="{{ form.estimated_days.id_for_label }}">
+                            <span class="label-text">Est. Days</span>
+                        </label>
+                        <input type="number" name="{{ form.estimated_days.html_name }}" id="{{ form.estimated_days.id_for_label }}"
+                               value="{{ form.estimated_days.value|default:'' }}"
+                               min="1"
+                               class="input input-bordered w-full {% if form.estimated_days.errors %}input-error{% endif %}"
+                               placeholder="e.g. 3" />
+                        <label class="label"><span class="label-text-alt text-base-content/60">Business days to complete</span></label>
+                        {% for error in form.estimated_days.errors %}
+                            <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Image -->
+                <div class="form-control w-full mb-3">
+                    <label class="label" for="{{ form.image.id_for_label }}">
+                        <span class="label-text">Image</span>
+                    </label>
+                    <div id="image-editor" class="mb-2 {% if not object.image %}hidden{% endif %}">
+                        <div class="w-72 rounded overflow-hidden border border-base-300 bg-base-200 aspect-3/2">
+                            <img id="image-preview" {% if object.image %}src="{{ object.image.url }}"{% endif %} alt="{{ object.name }}" class="w-full h-full object-cover" />
+                        </div>
+                        <button type="button" id="recrop-btn" class="btn btn-xs btn-outline mt-2 hidden">Crop again</button>
+                        <p class="text-sm text-base-content/60 mt-1">Cards show this 3:2 crop exactly. Upload a new file to replace the image.</p>
+                    </div>
+                    <input type="file" name="{{ form.image.html_name }}" id="{{ form.image.id_for_label }}"
+                           accept="image/*"
+                           class="file-input file-input-bordered w-full {% if form.image.errors %}file-input-error{% endif %}" />
+                    {% for error in form.image.errors %}
+                        <label class="label"><span class="label-text-alt text-error">{{ error }}</span></label>
+                    {% endfor %}
+                    <input type="hidden" name="{{ form.focal_x.html_name }}" id="{{ form.focal_x.id_for_label }}" value="{{ form.focal_x.value|default:0.5 }}" />
+                    <input type="hidden" name="{{ form.focal_y.html_name }}" id="{{ form.focal_y.id_for_label }}" value="{{ form.focal_y.value|default:0.5 }}" />
+                </div>
+
+                <!-- Checkboxes -->
+                <div class="flex flex-wrap gap-6 mb-6">
+                    <div class="form-control">
+                        <label class="label cursor-pointer gap-3">
+                            <input type="checkbox" name="{{ form.is_active.html_name }}" id="{{ form.is_active.id_for_label }}"
+                                   class="checkbox checkbox-primary"
+                                   {% if form.is_active.value %}checked{% endif %} />
+                            <span class="label-text">Active (visible to customers)</span>
+                        </label>
+                    </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer gap-3">
+                            <input type="checkbox" name="{{ form.is_featured.html_name }}" id="{{ form.is_featured.id_for_label }}"
+                                   class="checkbox checkbox-secondary"
+                                   {% if form.is_featured.value %}checked{% endif %} />
+                            <span class="label-text">Featured (shown on homepage)</span>
+                        </label>
+                    </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer gap-3">
+                            <input type="checkbox" name="{{ form.is_price_variable.html_name }}" id="{{ form.is_price_variable.id_for_label }}"
+                                   class="checkbox checkbox-accent"
+                                   {% if form.is_price_variable.value %}checked{% endif %} />
+                            <span class="label-text">Custom Quote (price set by owner per order)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card-actions justify-end gap-2">
+                    <a href="{% url 'catalog:service_admin_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if object %}Save Changes{% else %}Create Service{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Crop modal: opens as soon as a file is chosen, Slack-style -->
+<dialog id="crop-modal" class="modal">
+    <div class="modal-box max-w-3xl p-0">
+        <div class="flex items-center justify-between px-6 pt-5 pb-4">
+            <h3 class="text-xl font-bold">Crop image</h3>
+            <button type="button" id="crop-close" class="btn btn-sm btn-circle btn-ghost" aria-label="Close">✕</button>
+        </div>
+
+        <div class="px-6">
+            <div class="bg-base-300 rounded overflow-hidden flex items-center justify-center" style="min-height: 16rem;">
+                <div id="crop-stage" class="relative inline-block leading-none select-none touch-none">
+                    <img id="crop-image" alt="" class="block max-h-[55vh] max-w-full select-none" draggable="false" />
+                    <div id="crop-rect" class="absolute cursor-move"
+                         style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); outline: 2px dashed #fff; outline-offset: -1px;">
+                        <span data-handle="nw" class="absolute -left-1.5 -top-1.5 w-3 h-3 bg-white border border-neutral cursor-nwse-resize"></span>
+                        <span data-handle="ne" class="absolute -right-1.5 -top-1.5 w-3 h-3 bg-white border border-neutral cursor-nesw-resize"></span>
+                        <span data-handle="sw" class="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-white border border-neutral cursor-nesw-resize"></span>
+                        <span data-handle="se" class="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-white border border-neutral cursor-nwse-resize"></span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-sm text-base-content/60 mt-4 mb-2">Preview</p>
+            <div class="flex items-end gap-4">
+                <div>
+                    <div id="crop-preview-card" class="w-36 aspect-3/2 rounded border border-base-300 bg-base-200"></div>
+                    <p class="text-xs text-base-content/60 mt-1">Service card</p>
+                </div>
+                <div>
+                    <div id="crop-preview-thumb" class="w-10 h-10 rounded border border-base-300 bg-base-200"></div>
+                    <p class="text-xs text-base-content/60 mt-1">List</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-action px-6 pb-5 pt-4">
+            <button type="button" id="crop-cancel" class="btn btn-ghost">Cancel</button>
+            <button type="button" id="crop-save" class="btn btn-primary">Save</button>
+        </div>
+    </div>
+</dialog>
+
+<script>
+// ── Categories multi-tag input widget ────────────────────────────────────
+(function () {
+    const box        = document.getElementById('tag-box');
+    const hiddenWrap = document.getElementById('tag-hidden-inputs');
+    const textInput  = document.getElementById('tag-text');
+    const dropdown   = document.getElementById('tag-dropdown');
+    const list       = document.getElementById('tag-list-el');
+
+    if (!box || !textInput) return;
+
+    const SEARCH_URL = '{% url "catalog:tag_search" %}';
+    const CREATE_URL = '{% url "catalog:tag_get_or_create" %}';
+    const CSRF       = () => document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    const selected = new Map(); // id → name
+
+    // Restore pre-selected values from server context
+    const initEl = document.getElementById('initial-tags');
+    if (initEl) {
+        JSON.parse(initEl.textContent).forEach(c => addTag(c.id, c.name));
+    }
+
+    let debounce;
+    textInput.addEventListener('input', function () {
+        clearTimeout(debounce);
+        const q = this.value.trim();
+        if (!q) { hideDropdown(); return; }
+        debounce = setTimeout(() => fetchSuggestions(q), 180);
+    });
+
+    textInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const q = this.value.trim();
+            if (q) createOrGet(q);
+        } else if (e.key === 'Escape') {
+            hideDropdown();
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            list.querySelector('li')?.focus();
+        }
+    });
+
+    list.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown')  { e.preventDefault(); e.target.nextElementSibling?.focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); (e.target.previousElementSibling || textInput).focus(); }
+        else if (e.key === 'Enter') { e.preventDefault(); e.target.click(); }
+        else if (e.key === 'Escape') { hideDropdown(); textInput.focus(); }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('#tag-box') && !e.target.closest('#tag-dropdown')) hideDropdown();
+    });
+
+    function fetchSuggestions(q) {
+        fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => renderDropdown(data.tags, q));
+    }
+
+    function renderDropdown(categories, q) {
+        list.innerHTML = '';
+        // Filter out already-selected categories
+        const unselected = categories.filter(c => !selected.has(String(c.id)));
+        unselected.forEach(cat => {
+            list.appendChild(makeItem(cat.name, () => addTag(cat.id, cat.name)));
+        });
+        const exactMatch = categories.some(c => c.name.toLowerCase() === q.toLowerCase());
+        if (!exactMatch) {
+            list.appendChild(makeItem(`Create "${q}"`, () => createOrGet(q), true));
+        }
+        list.children.length ? showDropdown() : hideDropdown();
+    }
+
+    function makeItem(label, onClick, isCreate = false) {
+        const li = document.createElement('li');
+        li.className = 'px-4 py-2 cursor-pointer hover:bg-base-200 text-sm' +
+            (isCreate ? ' text-primary font-medium border-t border-base-300' : '');
+        li.textContent = label;
+        li.tabIndex = -1;
+        li.addEventListener('click', onClick);
+        return li;
+    }
+
+    function createOrGet(name) {
+        fetch(CREATE_URL, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ name }).toString(),
+        })
+        .then(r => r.json())
+        .then(data => { if (data.id) addTag(data.id, data.name); });
+    }
+
+    function addTag(id, name) {
+        const key = String(id);
+        if (selected.has(key)) return;
+        selected.set(key, name);
+
+        // Hidden input for form submission
+        const input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = 'tags';
+        input.value = id;
+        input.id    = `tag-hidden-${key}`;
+        hiddenWrap.appendChild(input);
+
+        // Visible pill (inserted before the text input)
+        const pill = document.createElement('span');
+        pill.className    = 'badge badge-primary gap-1';
+        pill.dataset.catId = key;
+        pill.innerHTML    = `${name} <button type="button" aria-label="Remove" class="leading-none hover:text-error" data-remove="${key}">×</button>`;
+        box.insertBefore(pill, textInput);
+
+        pill.querySelector('button').addEventListener('click', () => removeTag(key));
+
+        textInput.value = '';
+        textInput.placeholder = '';
+        hideDropdown();
+        updatePlaceholder();
+    }
+
+    function removeTag(key) {
+        selected.delete(key);
+        document.getElementById(`tag-hidden-${key}`)?.remove();
+        box.querySelector(`[data-cat-id="${key}"]`)?.remove();
+        updatePlaceholder();
+    }
+
+    function updatePlaceholder() {
+        textInput.placeholder = selected.size === 0 ? 'Search or type to create tag…' : '';
+    }
+
+    function showDropdown() { dropdown.classList.remove('hidden'); }
+    function hideDropdown() { dropdown.classList.add('hidden'); }
+})();
+
+// ── Slug auto-fill ────────────────────────────────────────────────────────
+(function () {
+    const nameInput = document.getElementById('id_name');
+    const slugInput = document.getElementById('id_slug');
+    if (!nameInput || !slugInput) return;
+    let autoFill = slugInput.value === '';
+    slugInput.addEventListener('input', () => { autoFill = false; });
+    nameInput.addEventListener('input', function () {
+        if (!autoFill) return;
+        slugInput.value = this.value.toLowerCase().trim()
+            .replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/^-+|-+$/g, '');
+    });
+})();
+
+// ── Crop modal (opens on file select, Slack-style) ──────────────────────────
+(function () {
+    const fileInput = document.getElementById('id_image');
+    const modal     = document.getElementById('crop-modal');
+    const stage     = document.getElementById('crop-stage');
+    const cropImg   = document.getElementById('crop-image');
+    const cropRect  = document.getElementById('crop-rect');
+    const editor    = document.getElementById('image-editor');
+    const preview   = document.getElementById('image-preview');
+    const recropBtn = document.getElementById('recrop-btn');
+    const previews  = [document.getElementById('crop-preview-card'),
+                       document.getElementById('crop-preview-thumb')];
+    if (!fileInput || !modal || !stage || !cropImg || !cropRect) return;
+
+    const RATIO = 3 / 2;            // cards render exactly this, so the crop is locked to it
+    const MIN_W = 48;               // smallest crop width, in on-screen pixels
+    let crop        = { x: 0, y: 0, w: 0, h: 0 };
+    let sourceFile  = null;         // the file the user picked, kept for re-cropping
+    let croppedFile = null;         // what is currently in the file input
+    let sourceUrl   = null;
+    let resultUrl   = null;
+
+    fileInput.addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        sourceFile = file;
+        open(file);
+    });
+
+    recropBtn.addEventListener('click', () => { if (sourceFile) open(sourceFile); });
+
+    function open(file) {
+        if (sourceUrl) URL.revokeObjectURL(sourceUrl);
+        sourceUrl = URL.createObjectURL(file);
+        modal.showModal();
+        // Preload so the <img> has real dimensions the moment it is measured.
+        const probe = new Image();
+        probe.onload = function () {
+            cropImg.src = sourceUrl;
+            requestAnimationFrame(() => requestAnimationFrame(initCrop));
+        };
+        probe.src = sourceUrl;
+    }
+
+    function initCrop() {
+        const W = cropImg.clientWidth, H = cropImg.clientHeight;
+        // Largest 3:2 box that fits, at 90% of the image, centered.
+        let w = W * 0.9, h = w / RATIO;
+        if (h > H * 0.9) { h = H * 0.9; w = h * RATIO; }
+        crop = {
+            x: Math.round((W - w) / 2),
+            y: Math.round((H - h) / 2),
+            w: Math.round(w),
+            h: Math.round(h),
+        };
+        render();
+    }
+
+    function render() {
+        cropRect.style.left   = crop.x + 'px';
+        cropRect.style.top    = crop.y + 'px';
+        cropRect.style.width  = crop.w + 'px';
+        cropRect.style.height = crop.h + 'px';
+        previews.forEach(function (el) {
+            if (!el || !crop.w || !crop.h) return;
+            const pw = el.clientWidth, ph = el.clientHeight;
+            const scale = Math.max(pw / crop.w, ph / crop.h);   // fill, like object-cover
+            el.style.backgroundImage    = `url("${sourceUrl}")`;
+            el.style.backgroundRepeat   = 'no-repeat';
+            el.style.backgroundSize     = `${cropImg.clientWidth * scale}px ${cropImg.clientHeight * scale}px`;
+            el.style.backgroundPosition =
+                `${-(crop.x * scale + (crop.w * scale - pw) / 2)}px ${-(crop.y * scale + (crop.h * scale - ph) / 2)}px`;
+        });
+    }
+
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+    let mode = null, start = null, stageRect = null;
+
+    cropRect.addEventListener('pointerdown', function (e) {
+        mode      = e.target.dataset.handle || 'move';
+        start     = { px: e.clientX, py: e.clientY, x: crop.x, y: crop.y, w: crop.w, h: crop.h };
+        stageRect = cropImg.getBoundingClientRect();
+        cropRect.setPointerCapture(e.pointerId);
+        e.preventDefault();
+    });
+
+    window.addEventListener('pointermove', function (e) {
+        if (!mode) return;
+        const W = cropImg.clientWidth, H = cropImg.clientHeight;
+        const dx = e.clientX - start.px, dy = e.clientY - start.py;
+
+        if (mode === 'move') {
+            crop.x = clamp(start.x + dx, 0, W - start.w);
+            crop.y = clamp(start.y + dy, 0, H - start.h);
+        } else {
+            // Resize from the opposite corner, holding the 3:2 ratio.
+            const ax = mode.includes('e') ? start.x : start.x + start.w;
+            const ay = mode.includes('s') ? start.y : start.y + start.h;
+            const px = clamp(e.clientX - stageRect.left, 0, W);
+            const py = clamp(e.clientY - stageRect.top, 0, H);
+
+            // Whichever axis the pointer pulled further wins; the other follows the ratio.
+            let w = Math.max(Math.abs(px - ax), Math.abs(py - ay) * RATIO);
+            const maxW = mode.includes('e') ? W - ax : ax;
+            const maxH = mode.includes('s') ? H - ay : ay;
+            w = clamp(w, MIN_W, Math.min(maxW, maxH * RATIO));
+            const h = w / RATIO;
+
+            crop = {
+                x: mode.includes('e') ? ax : ax - w,
+                y: mode.includes('s') ? ay : ay - h,
+                w: w,
+                h: h,
+            };
+        }
+        render();
+    });
+
+    window.addEventListener('pointerup', function () { mode = null; });
+
+    document.getElementById('crop-save').addEventListener('click', function () {
+        const ratio  = cropImg.naturalWidth / cropImg.clientWidth;
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.max(1, Math.round(crop.w * ratio));
+        canvas.height = Math.max(1, Math.round(crop.h * ratio));
+        canvas.getContext('2d').drawImage(
+            cropImg,
+            crop.x * ratio, crop.y * ratio, crop.w * ratio, crop.h * ratio,
+            0, 0, canvas.width, canvas.height
+        );
+        const type = sourceFile.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        canvas.toBlob(function (blob) {
+            if (!blob) return;
+            const base = sourceFile.name.replace(/\.[^.]+$/, '');
+            const name = `${base}.${type === 'image/png' ? 'png' : 'jpg'}`;
+            croppedFile = new File([blob], name, { type: type, lastModified: Date.now() });
+
+            const dt = new DataTransfer();
+            dt.items.add(croppedFile);
+            fileInput.files = dt.files;
+
+            if (resultUrl) URL.revokeObjectURL(resultUrl);
+            resultUrl = URL.createObjectURL(croppedFile);
+            preview.src = resultUrl;
+            editor.classList.remove('hidden');
+            recropBtn.classList.remove('hidden');
+
+            modal.close();
+        }, type, 0.92);
+    });
+
+    function cancel() {
+        // Keep whatever crop was already accepted; otherwise leave no file at all.
+        if (croppedFile) {
+            const dt = new DataTransfer();
+            dt.items.add(croppedFile);
+            fileInput.files = dt.files;
+        } else {
+            fileInput.value = '';
+        }
+        modal.close();
+    }
+
+    document.getElementById('crop-cancel').addEventListener('click', cancel);
+    document.getElementById('crop-close').addEventListener('click', cancel);
+    modal.addEventListener('cancel', function (e) { e.preventDefault(); cancel(); });  // Esc
+})();
+
+(function () {
+    const variableCheckbox = document.getElementById('id_is_price_variable');
+    const priceInput = document.getElementById('id_price');
+    if (!variableCheckbox || !priceInput) return;
+    function togglePrice() {
+        priceInput.disabled = variableCheckbox.checked;
+        priceInput.closest('.form-control').style.opacity = variableCheckbox.checked ? '0.4' : '1';
+    }
+    variableCheckbox.addEventListener('change', togglePrice);
+    togglePrice();
+})();
+</script>
+{% endblock %}

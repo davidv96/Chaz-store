@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Services - RCVA Custom{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8">
+    <!-- Sidebar -->
+    <aside class="lg:w-64 shrink-0">
+        <div class="card bg-base-100 shadow-md">
+            <div class="card-body">
+                <!-- Search -->
+                <h3 class="font-bold text-lg mb-2">Search</h3>
+                <form hx-get="{% url 'catalog:service_list' %}"
+                      hx-target="#service-grid"
+                      hx-push-url="true"
+                      hx-swap="innerHTML"
+                      class="mb-4">
+                    <div class="join w-full">
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ search_query }}"
+                            placeholder="Search services..."
+                            class="input input-bordered join-item w-full input-sm"
+                        />
+                        <button type="submit" class="btn btn-primary join-item btn-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Tags -->
+                <h3 class="font-bold text-lg mb-2">Tags</h3>
+                <ul class="menu menu-sm bg-base-100 rounded-box w-full p-0">
+                    <li>
+                        <a hx-get="{% url 'catalog:service_list' %}"
+                           hx-target="#service-grid"
+                           hx-push-url="true"
+                           hx-swap="innerHTML"
+                           class="{% if not current_tag %}active{% endif %}">
+                            All Services
+                        </a>
+                    </li>
+                    {% for tag in tags %}
+                    <li>
+                        <a hx-get="{% url 'catalog:service_list' %}?tag={{ tag.slug }}"
+                           hx-target="#service-grid"
+                           hx-push-url="true"
+                           hx-swap="innerHTML"
+                           class="{% if current_tag == tag.slug %}active{% endif %}">
+                            #{{ tag.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold">Services</h1>
+            <div class="flex items-center gap-3">
+                {% if search_query %}
+                    <span class="text-base-content/60">Results for "{{ search_query }}"</span>
+                {% endif %}
+                {% if user.is_staff %}
+                    <a href="{% url 'catalog:service_create' %}" class="btn btn-primary btn-sm">+ New Service</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="service-grid">
+            {% include "catalog/_service_list_partial.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

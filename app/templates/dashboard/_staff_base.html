@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block main %}
+<div class="drawer lg:drawer-open flex-1">
+    <input id="staff-drawer" type="checkbox" class="drawer-toggle" />
+
+    <div class="drawer-content flex flex-col min-h-screen">
+        <!-- Topbar -->
+        <div class="navbar bg-base-100 border-b border-base-300 px-4 lg:px-6 gap-2">
+            <div class="flex-none lg:hidden">
+                <label for="staff-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </label>
+            </div>
+
+            <div class="flex-1">
+                <h1 class="text-lg font-semibold">{% block staff_title %}Dashboard{% endblock %}</h1>
+            </div>
+
+            <div class="flex-none flex items-center gap-2">
+                <a href="{% url 'catalog:home' %}" class="btn btn-ghost btn-sm hidden sm:inline-flex">View Store</a>
+
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+                        <div class="bg-neutral text-neutral-content w-9 rounded-full">
+                            <span class="text-sm">{{ user.email|make_list|first|upper }}</span>
+                        </div>
+                    </div>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
+                        <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
+                        <li>
+                            <form method="post" action="{% url 'accounts:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page content -->
+        <main class="flex-1 p-4 lg:p-6 bg-base-200/40">
+            {% include "includes/_messages.html" %}
+            {% block staff_content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="drawer-side z-20">
+        <label for="staff-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+        <aside class="min-h-full w-64 bg-base-100 border-r border-base-300 flex flex-col">
+            <div class="px-5 py-5 border-b border-base-300">
+                <a href="{% url 'catalog:home' %}" class="text-lg font-bold">RCVA Custom</a>
+            </div>
+
+            <nav class="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
+                <div>
+                    <a href="{% url 'dashboard:dashboard' %}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-field text-sm font-medium {% if request.resolver_match.url_name == 'dashboard' %}bg-primary text-primary-content{% else %}hover:bg-base-200{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        Dashboard
+                    </a>
+                </div>
+
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-1">Products</p>
+                    <div class="space-y-0.5">
+                        <a href="{% url 'catalog:service_admin_list' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-field text-sm {% if request.resolver_match.url_name == 'service_admin_list' %}bg-primary text-primary-content{% else %}hover:bg-base-200{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            All Services
+                        </a>
+                        <a href="{% url 'catalog:service_create' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-field text-sm {% if request.resolver_match.url_name == 'service_create' or request.resolver_match.url_name == 'service_edit' %}bg-primary text-primary-content{% else %}hover:bg-base-200{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Add Service
+                        </a>
+                        <a href="{% url 'catalog:tag_list' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-field text-sm {% if request.resolver_match.url_name == 'tag_list' %}bg-primary text-primary-content{% else %}hover:bg-base-200{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5.586a1 1 0 01.707.293l7.414 7.414a1 1 0 010 1.414l-7.586 7.586a1 1 0 01-1.414 0L4.293 12.293A1 1 0 014 11.586V6a3 3 0 013-3z" />
+                            </svg>
+                            Tags
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-1">Orders</p>
+                    <div class="space-y-0.5">
+                        <a href="{% url 'orders:owner_order_list' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-field text-sm {% if request.resolver_match.url_name == 'owner_order_list' or request.resolver_match.url_name == 'owner_order_detail' %}bg-primary text-primary-content{% else %}hover:bg-base-200{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            All Orders
+                        </a>
+                        <a href="{% url 'orders:owner_order_create' %}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-field text-sm {% if request.resolver_match.url_name == 'owner_order_create' %}bg-primary text-primary-content{% else %}hover:bg-base-200{% endif %}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Create Order
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="px-3 py-4 border-t border-base-300">
+                <a href="{% url 'catalog:home' %}" class="btn btn-ghost btn-sm w-full justify-start">&larr; Back to Store</a>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

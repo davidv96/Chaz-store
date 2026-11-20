@@ -1,0 +1,69 @@
+{% extends "dashboard/_staff_base.html" %}
+
+{% block title %}Services{% endblock %}
+{% block staff_title %}Products{% endblock %}
+
+{% block staff_content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="breadcrumbs text-sm text-base-content/60">
+        <ul><li>Products</li><li>All Services</li></ul>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'catalog:tag_list' %}" class="btn btn-ghost btn-sm">Tags</a>
+        <a href="{% url 'catalog:service_create' %}" class="btn btn-primary btn-sm">+ New Service</a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="stats stats-vertical sm:stats-horizontal shadow w-full mb-6">
+    <div class="stat">
+        <div class="stat-title">Total Services</div>
+        <div class="stat-value">{{ total_count }}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">Active</div>
+        <div class="stat-value text-success">{{ active_count }}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-title">Draft</div>
+        <div class="stat-value text-base-content/60">{{ draft_count }}</div>
+    </div>
+</div>
+
+<!-- Filter bar -->
+<div class="card bg-base-100 shadow-md mb-4">
+    <div class="card-body p-4">
+        <form hx-get="{% url 'catalog:service_admin_list' %}"
+              hx-target="#product-table"
+              hx-push-url="true"
+              hx-swap="innerHTML"
+              class="flex flex-wrap items-center gap-3">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Search products, slug…"
+                   class="input input-bordered input-sm w-full sm:w-64" />
+
+            <select name="tag" class="select select-bordered select-sm">
+                <option value="">All tags</option>
+                {% for tag in tags %}
+                    <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>#{{ tag.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="status" class="select select-bordered select-sm">
+                <option value="">All status</option>
+                <option value="active" {% if current_status == "active" %}selected{% endif %}>Active</option>
+                <option value="draft" {% if current_status == "draft" %}selected{% endif %}>Draft</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        </form>
+    </div>
+</div>
+
+<div class="card bg-base-100 shadow-md">
+    <div class="card-body p-0">
+        <div id="product-table">
+            {% include "catalog/_service_admin_table_partial.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

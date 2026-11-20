@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - RCVA Custom{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="card bg-base-100 shadow-xl w-full max-w-md">
+        <div class="card-body">
+            <h2 class="card-title text-2xl font-bold justify-center mb-4">Create an Account</h2>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="form-control w-full mb-3">
+                    <label class="label" for="{{ field.id_for_label }}">
+                        <span class="label-text">{{ field.label }}</span>
+                    </label>
+                    {% if field.name == "address" %}
+                        <textarea
+                            name="{{ field.html_name }}"
+                            id="{{ field.id_for_label }}"
+                            class="textarea textarea-bordered w-full {% if field.errors %}textarea-error{% endif %}"
+                            rows="3"
+                            placeholder="{{ field.label }}"
+                        >{{ field.value|default:"" }}</textarea>
+                    {% else %}
+                        <input
+                            type="{% if 'password' in field.name %}password{% elif field.name == 'email' %}email{% else %}text{% endif %}"
+                            name="{{ field.html_name }}"
+                            id="{{ field.id_for_label }}"
+                            value="{% if 'password' not in field.name %}{{ field.value|default:'' }}{% endif %}"
+                            class="input input-bordered w-full {% if field.errors %}input-error{% endif %}"
+                            placeholder="{{ field.label }}"
+                        />
+                    {% endif %}
+                    {% if field.help_text %}
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">{{ field.help_text }}</span>
+                        </label>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ error }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <div class="form-control mt-4">
+                    <button type="submit" class="btn btn-primary w-full">Sign Up</button>
+                </div>
+            </form>
+
+            <div class="divider">OR</div>
+
+            <p class="text-center text-sm">
+                Already have an account?
+                <a href="{% url 'accounts:login' %}" class="link link-primary">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

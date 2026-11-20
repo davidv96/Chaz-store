@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load order_tags %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-3xl font-bold mb-6">My Orders</h1>
+
+    {% if orders %}
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <div class="font-medium">{{ order.title }}</div>
+                        <div class="text-xs text-base-content/60">#{{ order.pk }}</div>
+                    </td>
+                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    <td class="whitespace-nowrap">
+                        <span class="{{ order.status|status_badge }}">{{ order.get_status_display }}</span>
+                        {% if order.status == "quoted" %}<span class="badge badge-primary badge-sm ml-1">Action needed</span>{% endif %}
+                    </td>
+                    <td class="whitespace-nowrap">
+                        {% if order.has_pending_pricing %}
+                            <span class="text-secondary">Pending quote</span>
+                        {% else %}
+                            ${{ order.total }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'orders:order_detail' order.pk %}" class="btn btn-sm btn-ghost">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+    <div class="flex justify-center mt-8">
+        <div class="join">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn">Previous</a>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <a href="?page={{ num }}"
+               class="join-item btn {% if page_obj.number == num %}btn-active{% endif %}">{{ num }}</a>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="join-item btn">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-16">
+        <div class="text-6xl mb-4">&#128230;</div>
+        <h2 class="text-2xl font-semibold mb-2">No orders yet</h2>
+        <p class="text-base-content/70 mb-6">Once you submit a request, it will appear here.</p>
+        <a href="{% url 'orders:request_create' %}" class="btn btn-primary">Begin Order</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

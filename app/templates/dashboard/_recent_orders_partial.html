@@ -1,0 +1,40 @@
+{% load order_tags %}
+
+{% if recent_orders %}
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in recent_orders %}
+            <tr>
+                <td>
+                    <a href="{% url 'orders:owner_order_detail' order.pk %}" class="link link-primary">
+                        #{{ order.pk }}
+                    </a>
+                </td>
+                <td>{{ order.user.email }}</td>
+                <td class="whitespace-nowrap"><span class="{{ order.status|status_badge }}">{{ order.get_status_display }}</span></td>
+                <td class="whitespace-nowrap">
+                    {% if order.has_pending_pricing %}
+                        <span class="badge badge-secondary badge-sm">Needs quote</span>
+                    {% else %}
+                        ${{ order.total }}
+                    {% endif %}
+                </td>
+                <td class="text-sm">{{ order.created_at|date:"M d" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-base-content/60 py-4">No orders yet.</p>
+{% endif %}

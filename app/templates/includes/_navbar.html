@@ -1,0 +1,87 @@
+<div class="navbar bg-base-100 shadow-sm">
+    <!-- Brand / Home -->
+    <div class="flex-1">
+        <a href="{% url 'catalog:home' %}" class="btn btn-ghost text-xl">RCVA Custom</a>
+    </div>
+
+    <!-- Cart (always visible, no login required to browse it) -->
+    <div class="flex-none">
+        <a href="{% url 'orders:request_create' %}" class="btn btn-ghost btn-circle indicator relative" aria-label="Your order">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+            </svg>
+            {% if cart_item_count %}
+            <span class="badge badge-sm badge-primary indicator-item">{{ cart_item_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <div class="flex-none lg:hidden">
+        <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+                </svg>
+            </div>
+            <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'orders:request_create' %}">Begin Order</a></li>
+                    <li><a href="{% url 'orders:order_list' %}">My Orders</a></li>
+                    {% if user.is_staff %}
+                        <li class="menu-title">Owner</li>
+                        <li><a href="{% url 'orders:owner_order_list' %}">Manage Orders</a></li>
+                        <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
+                    <li>
+                        <form method="post" action="{% url 'accounts:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'accounts:login' %}">Login</a></li>
+                    <li><a href="{% url 'accounts:signup' %}">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Desktop: everything inline on the right -->
+    <div class="flex-none hidden lg:flex items-center gap-1">
+        {% if user.is_authenticated %}
+            <ul class="menu menu-horizontal px-1">
+                <li><a href="{% url 'orders:request_create' %}">Begin Order</a></li>
+                <li><a href="{% url 'orders:order_list' %}">My Orders</a></li>
+                {% if user.is_staff %}
+                    <li><a href="{% url 'orders:owner_order_list' %}">Manage Orders</a></li>
+                    <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+                {% endif %}
+            </ul>
+
+            <!-- User avatar -->
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+                    <div class="bg-neutral text-neutral-content w-10 rounded-full">
+                        <span class="text-sm">{{ user.email|make_list|first|upper }}</span>
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
+                    <li>
+                        <a href="{% url 'accounts:profile' %}">Profile</a>
+                    </li>
+                    <li>
+                        <form method="post" action="{% url 'accounts:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-sm">Login</a>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-sm">Sign Up</a>
+        {% endif %}
+    </div>
+</div>

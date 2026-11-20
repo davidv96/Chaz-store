@@ -1,0 +1,31 @@
+ # Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments and lock files
+
+.venv
+*.lock
+!uv.lock
+.env
+
+# Django-specific files
+*.log
+*.pot
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+media/
+staticfiles/
+
+# Tailwind build output
+app/theme/static_src/node_modules/
+app/theme/static/css/dist/
+
+#OS files
+.DS_Store

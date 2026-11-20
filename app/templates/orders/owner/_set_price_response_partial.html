@@ -1,0 +1,7 @@
+{% include "orders/owner/_order_items_card_partial.html" %}
+
+<div id="status-controls" hx-swap-oob="true">
+    {% include "orders/owner/_status_controls_partial.html" %}
+</div>
+
+<p id="order-total" hx-swap-oob="true" class="font-bold text-xl">${{ order.total }}</p>

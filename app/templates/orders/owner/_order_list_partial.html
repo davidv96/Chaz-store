@@ -1,0 +1,67 @@
+{% load order_tags %}
+
+{% if orders %}
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>
+                    <div class="font-medium">{{ order.title }}</div>
+                    <div class="text-xs text-base-content/60">#{{ order.pk }}</div>
+                </td>
+                <td>{{ order.user.email }}</td>
+                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                <td class="whitespace-nowrap"><span class="{{ order.status|status_badge }}">{{ order.get_status_display }}</span></td>
+                <td class="whitespace-nowrap">
+                    {% if order.has_pending_pricing %}
+                        <span class="badge badge-secondary badge-sm">Needs quote</span>
+                    {% else %}
+                        ${{ order.total }}
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'orders:owner_order_detail' order.pk %}" class="btn btn-sm btn-primary btn-outline">
+                        Manage
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="flex justify-center mt-8">
+    <div class="join">
+        {% if page_obj.has_previous %}
+        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}"
+           class="join-item btn">Previous</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ num }}"
+           class="join-item btn {% if page_obj.number == num %}btn-active{% endif %}">{{ num }}</a>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}"
+           class="join-item btn">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-16">
+    <p class="text-base-content/60 text-lg">No orders found.</p>
+</div>
+{% endif %}

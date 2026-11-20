@@ -1,0 +1,63 @@
+{% extends "dashboard/_staff_base.html" %}
+{% load order_tags %}
+
+{% block title %}Dashboard{% endblock %}
+{% block staff_title %}Dashboard{% endblock %}
+
+{% block staff_content %}
+<div class="flex items-center justify-between mb-6">
+    <div></div>
+    <div class="flex gap-2">
+        <a href="{% url 'catalog:service_create' %}" class="btn btn-ghost btn-sm">+ New Service</a>
+        <a href="{% url 'orders:owner_order_create' %}" class="btn btn-primary btn-sm">+ Create Order</a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div id="dashboard-stats">
+    {% include "dashboard/_stats_partial.html" %}
+</div>
+
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <!-- Popular Services -->
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+            <h2 class="card-title">Popular Services</h2>
+            <div id="popular-services"
+                 hx-get="{% url 'dashboard:popular_partial' %}"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="flex justify-center py-8">
+                    <span class="loading loading-spinner loading-md"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+            <h2 class="card-title">Recent Orders</h2>
+            <div id="recent-orders">
+                {% include "dashboard/_recent_orders_partial.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue by Month -->
+<div class="card bg-base-100 shadow-md mt-6">
+    <div class="card-body">
+        <h2 class="card-title">Monthly Revenue</h2>
+        <div id="revenue-chart"
+             hx-get="{% url 'dashboard:revenue_partial' %}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-md"></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

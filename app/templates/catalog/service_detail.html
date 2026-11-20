@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.name }} - RCVA Custom{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex items-center justify-between">
+    <a href="{% url 'catalog:service_list' %}" class="btn btn-ghost btn-sm gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Services
+    </a>
+    {% if user.is_staff %}
+        <a href="{% url 'catalog:service_edit' service.slug %}" class="btn btn-outline btn-sm">Edit Service</a>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Image -->
+    <div>
+        {% if service.image %}
+        <figure class="rounded-box overflow-hidden">
+            <img src="{{ service.image.url }}" alt="{{ service.name }}" class="w-full object-cover rounded-box" />
+        </figure>
+        {% else %}
+        <div class="bg-base-200 rounded-box h-80 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Service Info -->
+    <div>
+        <div class="flex flex-wrap gap-1 mb-3">{% for tag in service.tags.all %}<span class="badge badge-outline">#{{ tag.name }}</span>{% endfor %}</div>
+        <h1 class="text-3xl font-bold mb-4">{{ service.name }}</h1>
+
+        <div class="flex items-center gap-4 mb-6">
+            {% if service.is_price_variable %}
+                <span class="text-3xl font-bold text-secondary">Custom Quote</span>
+                <span class="badge badge-outline badge-secondary">Price set after review</span>
+            {% else %}
+                <span class="text-3xl font-bold text-primary">${{ service.price }}</span>
+            {% endif %}
+            <div class="badge badge-secondary gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ service.estimated_days }} business day{{ service.estimated_days|pluralize }}
+            </div>
+        </div>
+
+        <div class="prose max-w-none mb-6">
+            {{ service.description|linebreaks }}
+        </div>
+
+        <!-- Add to Order -->
+        <div class="card bg-base-200">
+            <div class="card-body">
+                <h3 class="card-title text-lg">Order This Service</h3>
+                <p class="text-sm text-base-content/60 mb-2">
+                    Adds this to your order request form, prefilled — you can add sizing, color, and other details there.
+                </p>
+                <form method="post" action="{% url 'orders:add_pending_item' service.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+                        </svg>
+                        Add to Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

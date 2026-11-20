@@ -1,0 +1,19 @@
+{% if messages %}
+<div class="toast toast-top toast-end z-50">
+    {% for message in messages %}
+    <div class="alert app-message {% if message.tags == 'debug' %}alert-info{% elif message.tags == 'info' %}alert-info{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'error' %}alert-error{% else %}alert-info{% endif %}"
+         onclick="this.remove()"
+         onmouseover="clearTimeout(this._tid)"
+         onmouseout="this._tid=setTimeout(()=>this.remove(),1000)">
+        <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+</div>
+<script>
+(function () {
+    document.querySelectorAll('.app-message').forEach(function (el) {
+        el._tid = setTimeout(function () { el.remove(); }, 3500);
+    });
+})();
+</script>
+{% endif %}

@@ -1,0 +1,95 @@
+{% if services %}
+<div class="overflow-x-auto">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Tags</th>
+                <th>Est. Days</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service in services %}
+            <tr>
+                <td>
+                    <div class="flex items-center gap-3">
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="" class="h-10 w-10 rounded object-cover" />
+                        {% else %}
+                            <div class="h-10 w-10 rounded bg-base-200 flex items-center justify-center text-base-content/30">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <div class="font-medium">{{ service.name }}</div>
+                            <div class="text-xs text-base-content/50">{{ service.slug }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if service.is_price_variable %}
+                        <span class="text-secondary">Custom quote</span>
+                    {% else %}
+                        ${{ service.price }}
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="flex flex-wrap gap-1">
+                        {% for tag in service.tags.all %}
+                            <span class="badge badge-outline badge-sm">#{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>{{ service.estimated_days }}</td>
+                <td>
+                    {% if service.is_active %}
+                        <span class="badge badge-success badge-sm">Active</span>
+                    {% else %}
+                        <span class="badge badge-ghost badge-sm">Draft</span>
+                    {% endif %}
+                    {% if service.is_featured %}
+                        <span class="badge badge-secondary badge-sm">Featured</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    <a href="{% url 'catalog:service_edit' service.slug %}" class="btn btn-ghost btn-xs">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj and page_obj.has_other_pages %}
+<div class="flex justify-center py-4">
+    <div class="join">
+        {% if page_obj.has_previous %}
+            <a hx-get="{% url 'catalog:service_admin_list' %}?page={{ page_obj.previous_page_number }}{% if current_tag %}&tag={{ current_tag }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               hx-target="#product-table" hx-push-url="true" hx-swap="innerHTML" class="join-item btn btn-sm">&laquo;</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <button class="join-item btn btn-sm btn-active">{{ num }}</button>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <a hx-get="{% url 'catalog:service_admin_list' %}?page={{ num }}{% if current_tag %}&tag={{ current_tag }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                   hx-target="#product-table" hx-push-url="true" hx-swap="innerHTML" class="join-item btn btn-sm">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a hx-get="{% url 'catalog:service_admin_list' %}?page={{ page_obj.next_page_number }}{% if current_tag %}&tag={{ current_tag }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               hx-target="#product-table" hx-push-url="true" hx-swap="innerHTML" class="join-item btn btn-sm">&raquo;</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-16 text-base-content/60">
+    <p>No services found.</p>
+</div>
+{% endif %}

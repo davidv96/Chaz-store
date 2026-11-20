@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load order_tags %}
+
+{% block title %}Order #{{ order.pk }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold">Order #{{ order.pk }}</h1>
+        <span class="{{ order.status|status_badge }} badge-lg">{{ order.get_status_display }}</span>
+    </div>
+
+    <!-- Order Progress Steps -->
+    {% if order.status != "cancelled" %}
+    <div class="mb-8">
+        <ul class="steps steps-horizontal w-full">
+            <li class="step step-primary">
+                Submitted
+            </li>
+            {% if order.has_variable_items %}
+            <li class="step {% if order.status == 'quoted' or order.status == 'accepted' or order.status == 'in_progress' or order.status == 'completed' %}step-primary{% endif %}">
+                Quoted
+            </li>
+            {% endif %}
+            <li class="step {% if order.status == 'accepted' or order.status == 'in_progress' or order.status == 'completed' %}step-primary{% endif %}">
+                Accepted
+            </li>
+            <li class="step {% if order.status == 'in_progress' or order.status == 'completed' %}step-primary{% endif %}">
+                In Progress
+            </li>
+            <li class="step {% if order.status == 'completed' %}step-primary{% endif %}">
+                Completed
+            </li>
+        </ul>
+    </div>
+    {% else %}
+    <div class="alert alert-error mb-8">
+        <span>This order has been cancelled.</span>
+    </div>
+    {% endif %}
+
+    <!-- Quote Response -->
+    {% if order.status == "quoted" %}
+    <div class="alert alert-info mb-6 flex-col sm:flex-row items-start sm:items-center">
+        <div>
+            <h3 class="font-bold">Your quote is ready — ${{ order.total }}</h3>
+            <p class="text-sm">Review the priced items below, then accept to have us get started, or decline to cancel.</p>
+        </div>
+        <div class="flex gap-2 sm:ml-auto">
+            <form method="post" action="{% url 'orders:respond_to_quote' order.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="decline">
+                <button type="submit" class="btn btn-ghost btn-sm"
+                        onclick="return confirm('Decline this quote and cancel the order?');">Decline</button>
+            </form>
+            <form method="post" action="{% url 'orders:respond_to_quote' order.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="accept">
+                <button type="submit" class="btn btn-primary btn-sm">Accept Quote</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Order Details -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title">Order Details</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <span class="text-base-content/70">Placed on:</span>
+                    <span class="font-medium">{{ order.created_at|date:"M d, Y \\a\\t g:i A" }}</span>
+                </div>
+                <div>
+                    <span class="text-base-content/70">Total:</span>
+                    {% if order.has_pending_pricing %}
+                        <span class="font-bold text-lg text-secondary">Pending quote</span>
+                    {% else %}
+                        <span class="font-bold text-lg">${{ order.total }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if order.notes %}
+            <div class="mt-2">
+                <span class="text-base-content/70">Your Notes:</span>
+                <p class="mt-1">{{ order.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title">Items</h2>
+            <div class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr>
+                            <td>
+                                <div class="font-medium">{{ item.service_name }}</div>
+                                {% if item.notes %}<div class="text-sm text-base-content/60">{{ item.notes }}</div>{% endif %}
+                                <div class="flex gap-3 mt-1">
+                                    {% if item.attachment %}
+                                        <a href="{{ item.attachment.url }}" target="_blank" class="link link-primary text-xs">📎 Photo</a>
+                                    {% endif %}
+                                    {% if item.reference_url %}
+                                        <a href="{{ item.reference_url }}" target="_blank" class="link link-primary text-xs">🔗 Reference</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if item.is_price_variable and not item.price %}
+                                    <span class="text-secondary">Pending quote</span>
+                                {% else %}
+                                    ${{ item.price }}
+                                {% endif %}
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td>
+                                {% if item.is_price_variable and not item.price %}—{% else %}${{ item.subtotal }}{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Timeline -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title">Order Updates</h2>
+            <div id="order-timeline">
+                {% include "orders/_order_timeline_partial.html" %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6">
+        <a href="{% url 'orders:order_list' %}" class="btn btn-ghost">Back to Orders</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+<div class="overflow-x-auto">
+    <table class="table w-full">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Notes / Links</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td class="font-medium">{{ item.service_name }}</td>
+                <td>
+                    {% if item.is_price_variable and not item.price %}
+                        <form hx-post="{% url 'orders:set_item_price' order.pk item.pk %}"
+                              hx-target="#order-items-card"
+                              hx-swap="innerHTML"
+                              class="flex items-center gap-1">
+                            {% csrf_token %}
+                            <span class="text-sm">$</span>
+                            <input type="number" name="price" step="0.01" min="0"
+                                   value="{% if item.price %}{{ item.price }}{% elif item.service.price %}{{ item.service.price }}{% endif %}"
+                                   placeholder="0.00"
+                                   class="input input-bordered input-xs w-20 {% if price_error == item.pk %}input-error{% endif %}" />
+                            <button type="submit" class="btn btn-primary btn-xs">Set</button>
+                            {% if item.service.price %}<span class="text-xs text-base-content/50">*</span>{% endif %}
+                        </form>
+                        {% if item.service.price %}
+                            <p class="text-base-content/50 text-xs mt-1">*base price — customization may increase it</p>
+                        {% endif %}
+                        {% if price_error == item.pk %}
+                            <p class="text-error text-xs mt-1">Enter a valid price.</p>
+                        {% endif %}
+                    {% else %}
+                        ${{ item.price }}
+                    {% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td class="text-sm text-base-content/70 min-w-[16rem]">
+                    <div class="flex flex-col gap-2">
+                        <p>{{ item.notes|default:"—" }}</p>
+                        {% if item.attachment %}
+                            <a href="{{ item.attachment.url }}" target="_blank" class="inline-block">
+                                <img src="{{ item.attachment.url }}" alt="Photo for {{ item.service_name }}"
+                                     class="rounded-lg border border-base-300 shadow-sm h-24 w-24 object-cover cursor-zoom-in hover:opacity-80 transition-opacity" />
+                            </a>
+                        {% endif %}
+                        {% if item.reference_url %}
+                            <a href="{{ item.reference_url }}" target="_blank" class="link link-primary text-xs">🔗 Reference</a>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    {% if item.is_price_variable and not item.price %}
+                        <span class="text-secondary text-sm">Pending</span>
+                    {% else %}
+                        ${{ item.subtotal }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

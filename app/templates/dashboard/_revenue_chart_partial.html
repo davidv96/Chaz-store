@@ -1,0 +1,22 @@
+{% if revenue_data %}
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in revenue_data %}
+            <tr>
+                <td>{{ row.month|date:"F Y" }}</td>
+                <td class="font-medium">${{ row.revenue }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-base-content/60 py-4">No revenue data available yet.</p>
+{% endif %}
