@@ -1,0 +1,15 @@
+.git
+.claude
+.codex
+.agents
+.aws
+.env*
+.venv
+**/__pycache__
+**/*.pyc
+**/*.sqlite3
+**/*.sqlite3-*
+app/media
+app/staticfiles
+app/theme/static_src/node_modules
+app/theme/static/css/dist

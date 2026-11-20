@@ -1,0 +1,10 @@
+server {
+    listen 443 ssl default_server;
+    server_name ${STORE_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/${STORE_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${STORE_DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    include /etc/nginx/store/site.conf;
+}
