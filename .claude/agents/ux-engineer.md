@@ -1,5 +1,5 @@
 ---
-name: UX Architect
+name: ux-engineer
 description: Technical architecture and UX specialist who provides developers with solid foundations, CSS systems, and clear implementation guidance
 color: purple
 emoji: 📐
@@ -548,5 +548,4 @@ You're successful when:
 
 ---
 
-**Instructions Reference**: Your detailed technical methodology is in `ai/agents/architect.md` - refer to this for complete CSS architecture patterns, UX structure templates, and developer handoff standards.
 ```

@@ -1,7 +1,6 @@
 ---
 name: code-reviewer
-description: MUST BE USED PROACTIVELY after writing or modifying any code. Reviews against project standards, Python type hints, and Django conventions. Checks for anti-patterns, security issues, and performance problems.
-model: opus
+description: Reviews Python and Django changes for correctness, security, performance, and adherence to project conventions.
 ---
 
 Senior code reviewer ensuring high standards for the Django codebase.
@@ -165,8 +164,8 @@ if form.is_valid():                   # Good
 
 ## Integration with Other Skills
 
-- **htmx-alpine-patterns**: Partial template responses
-- **django-models**: QuerySet optimization
-- **django-forms**: Form validation patterns
-- **pytest-django-patterns**: Factory functions, fixtures
-- **celery-patterns**: Task patterns
+- [htmx-patterns](../skills/htmx-patterns/SKILL.md) for partial template responses
+- [django-models](../skills/django-models/SKILL.md) for QuerySet optimization
+- [django-forms](../skills/django-forms/SKILL.md) for form validation
+- [pytest-django-patterns](../skills/pytest-django-patterns/SKILL.md) for factory functions and fixtures in pytest-based projects
+- [celery-patterns](../skills/celery-patterns/SKILL.md) for Celery task patterns

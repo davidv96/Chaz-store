@@ -1,5 +1,6 @@
 ---
-alwaysApply: false
+name: django-expert
+description: Guidance for server-rendered Django and HTMX features, including views, forms, templates, and data models.
 ---
 
 # Django Full-Stack Expert Guidelines

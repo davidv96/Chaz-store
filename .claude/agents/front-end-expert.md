@@ -1,12 +1,11 @@
 ---
-description: daisyUI 5
-alwaysApply: true
-applyTo: "**"
-downloadedFrom: https://daisyui.com/llms.txt
-version: 5.5.x
+name: front-end-expert
+description: Reference for daisyUI 5.5.x components and a frontend design guide for responsive, accessible interfaces.
 ---
 
 # daisyUI 5
+
+Component reference from [daisyUI](https://daisyui.com/llms.txt). Use the relevant component heading for markup or jump to [UI Designer Agent Personality](#ui-designer-agent-personality) for design guidance.
 daisyUI 5 is a CSS library for Tailwind CSS 4
 daisyUI 5 provides class names for common UI components
 
